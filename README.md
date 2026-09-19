@@ -69,8 +69,70 @@ input-keyed memo so a per-turn hook cannot re-bill for identical inputs.
 A judgement in front of the `memory` tool. Memory is injected into *every* future
 conversation, so a wasted entry is a permanent tax — the gate asks whether a
 candidate entry is durable, non-obvious and steering-reducing, and declines the
-write when it is confidently filler. Only a confident rejection blocks; reads are
-never judged.
+write when it is confidently filler. Reads and every other tool pass straight
+through; batch writes are judged entry by entry.
+
+One `noul` question, answered against a state built from the entry text alone
+(no transcript is sent):
+
+```
+worth_remembering — noul: high = "not worth carrying across sessions"
+   false criterion: durable, non-obvious, steering-reducing, user-specific
+   true  criterion: task progress, completed-work logs, session outcomes,
+                    restated context, ephemeral state, raw data dumps,
+                    anything trivially rediscoverable
+```
+
+### Thresholds and cost control (defaults, from the source)
+
+| Knob | Default | Why |
+|---|---|---|
+| `block_below` | **0.25** | Decline only when P(worth keeping) < 0.25. Deliberately low: blocking a real preference costs more than storing a filler entry. |
+| `error_cooldown_s` | **120** | After a failure, no further calls for 2 minutes. |
+| short entries | never judged | Tiny contents (trims, edits) don't cost a request. |
+| memo | keyed on entry text | A repeated candidate is never re-billed. |
+| counters | `judged / passed / blocked / skipped_no_key / skipped_cooldown / errors` | Logged at INFO when `log_decisions` is on. |
+
+**Cost.** One question about one entry — the smallest request this API supports.
+For scale, the protocol doc measures a *larger* case (8 questions on a small
+state) at ~1,540 input tokens ≈ **$0.00007**; the gate's payload is bounded by
+that, and the knobs above exist to keep it there rather than to measure a
+per-entry average (this repo does not claim a measured per-entry figure).
+
+### Permissions — read this or the gate does nothing
+
+Declining a write means **short-circuiting the `memory` tool call** (returning a
+tool result instead of calling `next_call`). The host grants that only with the
+**`tools.override`** capability, and *everything defaults OFF*:
+
+```bash
+hermes plugins capabilities jev-memory-gate     # declared vs granted, effective state
+```
+
+Without the grant the plugin loads and judges, but the host refuses every decline
+— you will see this in the logs and the gate **fails open silently**:
+
+```
+capability=tools.override decision=deny checked_by=plugin_capability_granted evidence=not granted
+```
+
+Grant it either way:
+
+```bash
+hermes plugins update jev-memory-gate     # consent flow, interactive Y/n
+```
+
+```yaml
+plugins:
+  entries:
+    jev-memory-gate:
+      granted_capabilities: [tools.override]
+```
+
+(The deprecated `allow_tool_override: true` opens the same gate.) Capabilities
+are not a sandbox — in-process plugins are trusted code; this is a consent and
+audit trail for host API surfaces, and it is the one thing standing between a
+judgement and an actual block.
 
 ---
 

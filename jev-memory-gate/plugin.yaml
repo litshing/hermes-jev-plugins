@@ -10,6 +10,17 @@ description: >
   timeout lets the write proceed untouched. Reads are never judged.
 author: Shing
 kind: standalone
+capabilities:
+  # Required to be effective. The gate declines a write by short-circuiting the
+  # `memory` tool call (it returns a tool result instead of calling next_call),
+  # and the host only permits that with this capability granted. Without it the
+  # plugin still loads and still judges, but every decline is refused by the
+  # host — logged as `capability=tools.override decision=deny ... evidence=not
+  # granted` — so it silently fails open. Grant with the consent flow
+  # (`hermes plugins update jev-memory-gate`, interactive Y/n) or directly:
+  #   plugins.entries.jev-memory-gate.granted_capabilities: [tools.override]
+  # (deprecated equivalent: allow_tool_override: true)
+  - tools.override
 requires_env:
   - name: TYPESAFE_API_KEY
     description: "TypeSafe API key (System One / jev-latest)"
