@@ -1,0 +1,20 @@
+name: jev-compaction
+version: 0.1.0
+description: >
+  Context engine that prunes old tool output by need instead of by size.
+  Asks TypeSafe's Jev model, per tool call, whether the call still matters and
+  whether its contents are still needed verbatim; calls that no longer matter
+  are removed together with their results, and calls that matter but whose
+  bodies do not keep the call and lose the payload. Text, user turns and
+  assistant reasoning are never summarized. Subclasses the built-in
+  ContextCompressor, so it inherits the deterministic dedup pass, prompt-cache
+  hysteresis and session-DB persistence, and fails open to exactly the
+  built-in behaviour on any error.
+author: Shing
+kind: standalone
+requires_env:
+  - name: TYPESAFE_API_KEY
+    description: "TypeSafe API key (System One / jev-latest)"
+    prompt: "TypeSafe API key"
+    url: "https://typesafe.ai/"
+    password: true

@@ -1,0 +1,12 @@
+# python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# local state
+.env
+*.log
+*.log.*
+.DS_Store
+.venv/
+venv/

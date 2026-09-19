@@ -1,0 +1,18 @@
+name: jev-memory-gate
+version: 0.1.0
+description: >
+  A Jev judgement in front of the `memory` tool. Asks TypeSafe's Jev model
+  whether a candidate entry is worth carrying across sessions — durable,
+  non-obvious and steering-reducing — and declines the write when it is
+  confidently filler. Permanent memory is injected into every future
+  conversation, so a wasted entry is a permanent tax. Conservative and
+  fail-open: only a confident rejection blocks, and any error, missing key or
+  timeout lets the write proceed untouched. Reads are never judged.
+author: Shing
+kind: standalone
+requires_env:
+  - name: TYPESAFE_API_KEY
+    description: "TypeSafe API key (System One / jev-latest)"
+    prompt: "TypeSafe API key"
+    url: "https://typesafe.ai/"
+    password: true
