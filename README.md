@@ -134,6 +134,24 @@ are not a sandbox — in-process plugins are trusted code; this is a consent and
 audit trail for host API surfaces, and it is the one thing standing between a
 judgement and an actual block.
 
+**Two gotchas, both hit in practice:**
+
+- **`hermes config set` cannot express a list.** It stores
+  `plugins.entries.jev-memory-gate.granted_capabilities` as the *string*
+  `'["tools.override"]'`, which the reader rejects (it requires a `list`), so the
+  gate stays ungranted while the config file looks like it was set. Edit the YAML
+  directly:
+  ```yaml
+  granted_capabilities:
+    - tools.override
+  ```
+- **No gateway restart is needed.** Consent is read through `load_config()`,
+  which is cached on the config file's `(mtime_ns, size)` — editing the file
+  changes the cache key, so the next capability check (i.e. the next judged
+  write) sees the new grant. Verified end to end: with the grant in place but
+  the gateway untouched, a live filler write was declined by the gate itself
+  (`p=0.07 < 0.25`) instead of being refused by the host.
+
 ---
 
 ## Install
